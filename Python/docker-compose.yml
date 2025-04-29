@@ -1,7 +1,7 @@
 services:
   glance-tasks-backend:
     build: .
-    container_name: glance_tasks_backend
+    container_name: glance_google_calendar_backend
     ports:
       - "8075:8075"
     restart: always
