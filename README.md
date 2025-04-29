@@ -1,5 +1,4 @@
-# glance-GoogleCalendar
-## Google Calendar Extension for https://github.com/glanceapp/glance
+## Google Calendar List Extension for https://github.com/glanceapp/glance
 
 You can use this extension to list Google Calendar events in your Glance dashboard.
 
