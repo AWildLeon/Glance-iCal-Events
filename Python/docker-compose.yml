@@ -1,0 +1,11 @@
+services:
+  glance-tasks-backend:
+    build: .
+    container_name: glance_tasks_backend
+    ports:
+      - "8075:8075"
+    restart: always
+    environment:
+      - CLIENT_ID=YOUR_CLIENT_ID
+      - CLIENT_SECRET=YOUR_CLIENT_SECRET
+      - REFRESH_TOKEN=YOUR_REFRESH_TOKEN
