@@ -15,7 +15,7 @@ You can use the following options to run the app:
     2. Create a new project (or reuse one).
     3. Enable Google Calendar API.
     4. Create OAuth 2.0 Credentials:  
-    App type = Web application
+    App type = Web application  
     Add redirect URI: http://localhost:8075 [This does not really matter]  
     **You get**:  
     - CLIENT_ID  
