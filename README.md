@@ -23,9 +23,9 @@ You can use the following options to run the app:
     Save these.
 2. Get the Authentication Code (Manual one-time step)
     1. You need to get an auth code. Replace with your ClientId & Paste the following into your browser:  
-    <code>
+    ```
     https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost:8075&response_type=code&scope=https://www.googleapis.com/auth/calendar.readonly&access_type=offline&prompt=consent
-    </code>
+    ```
     2. Login with your Google Account.
     3. It will redirect you to http://localhost:8075?code=XYZ
     4. Copy the XYZ part.
