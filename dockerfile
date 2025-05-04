@@ -1,6 +1,6 @@
 FROM python:alpine
 
-RUN pip install flask requests pytz ics
+RUN pip install flask pytz icalevents
 
 USER app
 WORKDIR /app
