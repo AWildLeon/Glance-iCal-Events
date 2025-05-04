@@ -1,0 +1,6 @@
+services:
+  glances-ical-api:
+    image: ghcr.io/awildleon/glance-ical-events:main
+    restart: always
+  
+  # Put this in the same compose file as your glance dashboard

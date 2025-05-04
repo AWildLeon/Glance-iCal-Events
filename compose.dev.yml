@@ -1,6 +1,6 @@
 services:
   glances-ical-api:
     build: .
+    restart: always
     ports:
       - "8076:8076"
-    restart: always
