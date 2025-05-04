@@ -1,0 +1,4 @@
+pytz==2025.2
+icalevents==0.2.1
+flask
+gunicorn
