@@ -15,4 +15,4 @@ USER app
 EXPOSE 8076
 
 ENV FLASK_ENV=production
-ENTRYPOINT ["gunicorn", "app:app", "--bind", "0.0.0.0:8076"]
+ENTRYPOINT ["gunicorn", "app:app", "--bind", "0.0.0.0:8076" "--workers", "2"]
