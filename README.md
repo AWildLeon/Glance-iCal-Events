@@ -23,6 +23,8 @@ A simple extension that fetches events from an iCal (ICS) feed and displays them
 2. Update the `url` parameter to point to your encoded ICS feed URL.
 3. Reload or restart Glance to apply changes.
 
+> Note: I recommend using a version tag like `v1.0` instead of main if you don't want to see stuff accidentally brake...
+
 ## URL Encoding
 
 If your ICS URL contains special characters (for example, `?` or `&`), you must URL encode it ( '/' and ':' are fine ). Use the provided `urlencode.sh` script or any URL encoding tool:
