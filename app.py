@@ -32,8 +32,18 @@ def calendar_data():
     # # For each event, find its next occurrence using the calendar timeline
     for event in ev:
 
-        start = event.start.astimezone(pytz.utc)
-        end = event.end.astimezone(pytz.utc)
+        # Preserve original timezone information instead of converting to UTC
+        start = event.start
+        end = event.end
+        
+        # Ensure we have timezone-aware datetimes
+        if start.tzinfo is None:
+            # If no timezone info, assume local timezone
+            start = pytz.utc.localize(start)
+        if end.tzinfo is None:
+            # If no timezone info, assume local timezone  
+            end = pytz.utc.localize(end)
+            
         events_list.append({
             "name": event.summary,
             "start": start.isoformat(),
