@@ -16,6 +16,8 @@ A simple extension that fetches events from an iCal (ICS) feed and displays them
    ```bash
    docker compose up -d --remove-orphans
    ```
+### Advanced: NixOS
+See [This](./NIX_USAGE.md)
 
 ## Usage
 
