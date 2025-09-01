@@ -16,7 +16,6 @@
           pname = "glance-ical-events";
           version = "1.0.0";
 
-          # For a local repo. If you prefer GitHub, swap this for fetchFromGitHub.
           src = ./.;
 
           format = "setuptools";
@@ -42,12 +41,7 @@
               --set PYTHONPATH "$out/${pkgs.python3.sitePackages}:$PYTHONPATH" \
               --add-flags "app:app"
 
-            # Dev helper: no bind/port baked in; use FLASK_DEBUG style run().
-            makeWrapper ${pkgs.python3}/bin/python \
-              "$out/bin/glance-ical-events-dev" \
-              --set PYTHONPATH "$out/${pkgs.python3.sitePackages}:$PYTHONPATH" \
-              --add-flags "-c \"import app; app.app.run(debug=True)\""
-          '';
+            '';
 
           meta = with pkgs.lib; {
             description = "Flask API service for fetching and serving iCal events for Glance widgets";
@@ -151,8 +145,8 @@
               isSystemUser = true;
               group = cfg.group;
               description = "Glance iCal Events service user";
-              home = "/var/lib/glance-ical-events";
-              createHome = true;
+              home = "/var/empty";
+              createHome = false;
             };
 
             systemd.services.glance-ical-events = {
@@ -180,38 +174,72 @@
 
                 # Filesystem/paths
                 RuntimeDirectory = "glance-ical-events";
-                StateDirectory = "glance-ical-events";
-                CacheDirectory = "glance-ical-events";
-                LogsDirectory = "glance-ical-events";
 
                 # Security hardening
                 NoNewPrivileges = true;
                 PrivateTmp = true;
                 PrivateDevices = true;
+                PrivateUsers = true;
+                PrivateNetwork = false; # Need network access for HTTP API and iCal fetching
+                PrivateMounts = true;
                 ProtectSystem = "strict";
                 ProtectHome = true;
                 ProtectControlGroups = true;
                 ProtectKernelTunables = true;
                 ProtectKernelModules = true;
+                ProtectKernelLogs = true;
+                ProtectProc = "invisible";
+                ProcSubset = "pid";
                 RestrictRealtime = true;
                 RestrictSUIDSGID = true;
                 LockPersonality = true;
                 MemoryDenyWriteExecute = true;
+                ProtectClock = true;
+                ProtectHostname = true;
+                
+                # Detailed syscall filtering for Python/Flask/HTTP service
+                SystemCallFilter = [
+                  "@system-service"
+                  "~@cpu-emulation"
+                  "~@debug"
+                  "~@keyring"
+                  "~@memlock"
+                  "~@module"
+                  "~@mount"
+                  "~@obsolete"
+                  "~@privileged"
+                  "~@raw-io"
+                  "~@reboot"
+                  "~@swap"
+                ];
+                SystemCallErrorNumber = "EPERM";
 
-                # Syscall and network tightening (conservative defaults)
+                # Network and syscall tightening
                 RestrictAddressFamilies = [ "AF_INET" "AF_INET6" ];
+                RestrictNamespaces = true;
                 SystemCallArchitectures = "native";
-                # You can add a tailored SystemCallFilter later if desired.
 
-                # Capability drop
+                # Capability drop - remove all capabilities
                 CapabilityBoundingSet = [ "" ];
                 AmbientCapabilities = [ "" ];
 
-                # Misc
+                # Additional filesystem restrictions
+                ReadOnlyPaths = [ "/etc/ssl" "/etc/ca-certificates" ];
+                InaccessiblePaths = [ "/boot" "/home" "/root" "/opt" "/var/lib" ];
+                
+                # Resource limits
+                LimitNOFILE = "1024";
+                LimitNPROC = "64";
+                LimitCORE = "0";
+                
+                # Additional process restrictions
                 RemoveIPC = true;
                 KeyringMode = "private";
+                NotifyAccess = "none";
+
+                # Misc
                 UMask = "0077";
-                WorkingDirectory = "/var/lib/glance-ical-events";
+                WorkingDirectory = "/run/glance-ical-events";
                 StandardOutput = "journal";
                 StandardError = "journal";
               };
