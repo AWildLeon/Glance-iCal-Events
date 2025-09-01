@@ -211,6 +211,7 @@
                   "~@raw-io"
                   "~@reboot"
                   "~@swap"
+                  "~@resources"
                 ];
                 SystemCallErrorNumber = "EPERM";
 
