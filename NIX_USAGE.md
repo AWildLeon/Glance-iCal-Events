@@ -78,21 +78,6 @@ Add this flake as an input to your NixOS configuration:
 - `group`: Group to run as (default: "glance-ical-events")
 - `extraArgs`: Additional Gunicorn arguments (default: [])
 
-### Service Management
-
-```bash
-# Start the service
-sudo systemctl start glance-ical-events
-
-# Enable at boot
-sudo systemctl enable glance-ical-events
-
-# Check status
-sudo systemctl status glance-ical-events
-
-# View logs
-sudo journalctl -u glance-ical-events -f
-```
 
 ## Using the Overlay
 
