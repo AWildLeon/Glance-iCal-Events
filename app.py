@@ -97,31 +97,37 @@ def calendar_data():
     try:
         ev = events(ics_url, start=now_utc, end=end)
     except requests.exceptions.ConnectionError as e:
+        print(f"ConnectionError: Could not connect to {ics_url} - {str(e)}")
         return jsonify({
             "error": "Could not connect to the server. Please check the URL and try again.",
             "details": str(e)
         }), 503
     except requests.exceptions.Timeout as e:
+        print(f"Timeout: Request to {ics_url} timed out - {str(e)}")
         return jsonify({
             "error": "Request timed out. The server took too long to respond.",
             "details": str(e)
         }), 504
     except requests.exceptions.HTTPError as e:
+        print(f"HTTPError: HTTP error {e.response.status_code} for {ics_url} - {str(e)}")
         return jsonify({
             "error": f"HTTP error occurred: {e.response.status_code}",
             "details": str(e)
         }), 502
     except requests.exceptions.RequestException as e:
+        print(f"RequestException: Network error for {ics_url} - {str(e)}")
         return jsonify({
             "error": "Network error occurred while fetching calendar data.",
             "details": str(e)
         }), 502
     except ssl.SSLError as e:
+        print(f"SSLError: SSL certificate error for {ics_url} - {str(e)}")
         return jsonify({
             "error": "SSL certificate error. The server's certificate may be invalid.",
             "details": str(e)
         }), 502
     except socket.gaierror as e:
+        print(f"DNS Error: Failed to resolve hostname for {ics_url} - {str(e)}")
         return jsonify({
             "error": "DNS resolution failed. Please check the hostname in the URL.",
             "details": str(e)
@@ -129,11 +135,13 @@ def calendar_data():
     except ValueError as e:
         error_str = str(e).lower()
         if 'calendar' in error_str or 'ical' in error_str or 'parsing' in error_str:
+            print(f"ValueError: Invalid calendar data format for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "Invalid calendar data format. The server may have returned HTML or corrupted data.",
                 "details": str(e)
             }), 400
         else:
+            print(f"ValueError: Invalid calendar data for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "Invalid calendar data.",
                 "details": str(e)
@@ -142,21 +150,25 @@ def calendar_data():
         # Catch-all for any other exceptions
         error_str = str(e).lower()
         if 'host' in error_str and 'resolve' in error_str:
+            print(f"Exception: Could not resolve hostname for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "Could not resolve hostname. Please check the URL.",
                 "details": str(e)
             }), 502
         elif 'not supported url scheme' in error_str:
+            print(f"Exception: Unsupported URL scheme for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "Unsupported URL scheme. Only http and https are supported.",
                 "details": str(e)
             }), 400
         elif 'no host specified' in error_str:
+            print(f"Exception: Invalid URL format for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "Invalid URL format. Please provide a complete URL with hostname.",
                 "details": str(e)
             }), 400
         else:
+            print(f"Exception: Unexpected error for {ics_url} - {str(e)}")
             return jsonify({
                 "error": "An unexpected error occurred while processing the calendar data.",
                 "details": str(e)
@@ -210,6 +222,7 @@ def calendar_data():
         return jsonify({"events": events_list})
         
     except Exception as e:
+        print(f"Exception: Error processing calendar events for {ics_url} - {str(e)}")
         return jsonify({
             "error": "Error processing calendar events.",
             "details": str(e)
