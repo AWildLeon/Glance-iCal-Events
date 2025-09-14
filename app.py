@@ -29,6 +29,14 @@ def calendar_data():
     ev = events(ics_url, start=now_utc, end=end)
     events_list = []
 
+    # Get the system's local timezone more reliably
+    try:
+        # Use the system's local timezone
+        local_tz = datetime.datetime.now().astimezone().tzinfo
+    except:
+        # Fallback to UTC if we can't determine local timezone
+        local_tz = pytz.utc
+
     # # For each event, find its next occurrence using the calendar timeline
     for event in ev:
 
@@ -38,11 +46,17 @@ def calendar_data():
         
         # Ensure we have timezone-aware datetimes
         if start.tzinfo is None:
-            # If no timezone info, assume local timezone
-            start = pytz.utc.localize(start)
+            # If no timezone info, assume local timezone (not UTC!)
+            if hasattr(local_tz, 'localize'):
+                start = local_tz.localize(start)
+            else:
+                start = start.replace(tzinfo=local_tz)
         if end.tzinfo is None:
-            # If no timezone info, assume local timezone  
-            end = pytz.utc.localize(end)
+            # If no timezone info, assume local timezone (not UTC!)
+            if hasattr(local_tz, 'localize'):
+                end = local_tz.localize(end)
+            else:
+                end = end.replace(tzinfo=local_tz)
             
         events_list.append({
             "name": event.summary,
