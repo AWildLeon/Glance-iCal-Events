@@ -24,41 +24,49 @@ def calendar_data():
     # Calculate the start and end date
     now_utc = datetime.datetime.now(pytz.utc)
     start_of_today = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
-    end = start_of_today + datetime.timedelta(days=365)
+    end = start_of_today + datetime.timedelta(days=365 * 10)  # 10 years for testing
 
-    ev = events(ics_url, start=now_utc, end=end)
+    try:
+        ev = events(ics_url, start=start_of_today, end=end)
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse calendar: {str(e)}"}), 400
+        
     events_list = []
 
-    # # For each event, find its next occurrence using the calendar timeline
+    # For each event, find its next occurrence using the calendar timeline
     for event in ev:
-
-        # Preserve original timezone information instead of converting to UTC
-        start = event.start
-        end = event.end
-        
-        # Ensure we have timezone-aware datetimes
-        if start.tzinfo is None:
-            # If no timezone info, assume local timezone
-            start = pytz.utc.localize(start)
-        if end.tzinfo is None:
-            # If no timezone info, assume local timezone  
-            end = pytz.utc.localize(end)
+        try:
+            # The icalevents library converts everything to UTC, but we need to handle timezone properly
+            # Get the original start and end times (they're already in UTC from icalevents)
+            start_utc = event.start
+            end_utc = event.end
             
-        events_list.append({
-            "name": event.summary,
-            "start": start.isoformat(),
-            "end": end.isoformat(),
-            "all_day": event.all_day,
-            "secondsUntilStart": event.time_left().total_seconds(),
-            "url": event.url,
-            "description": event.description,
-            "location": event.location,
-            "status": event.status,
-            "created": event.created,
-            "last_modified": event.last_modified,
-            "uid": event.uid,
-            "recurrence_id": event.recurrence_id,
-        })
+            # Get the system's local timezone
+            local_tz = datetime.datetime.now().astimezone().tzinfo
+            
+            # Convert UTC times to local timezone for display
+            start_local = start_utc.astimezone(local_tz)
+            end_local = end_utc.astimezone(local_tz)
+                    
+            events_list.append({
+                "name": event.summary,
+                "start": start_local.isoformat(),
+                "end": end_local.isoformat(),
+                "all_day": event.all_day,
+                "secondsUntilStart": event.time_left().total_seconds(),
+                "url": event.url,
+                "description": event.description,
+                "location": event.location,
+                "status": event.status,
+                "created": event.created,
+                "last_modified": event.last_modified,
+                "uid": event.uid,
+                "recurrence_id": event.recurrence_id,
+            })
+        except Exception as e:
+            print(f"Error processing event: {e}")
+            # Skip this event and continue with the next one
+            continue
     
     # Sort the events by start time
     events_list.sort(key=lambda x: x['start'])
