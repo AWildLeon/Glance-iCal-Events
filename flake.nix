@@ -27,6 +27,7 @@
             pytz
             icalevents
             gunicorn
+            python-dateutil
           ];
 
           # No tests by default
@@ -64,6 +65,7 @@
             python3Packages.pytz
             python3Packages.icalevents
             python3Packages.gunicorn
+            python3Packages.python-dateutil
             python3Packages.pip
             python3Packages.setuptools
           ];

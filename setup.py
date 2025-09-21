@@ -6,12 +6,15 @@ setup(
     description="Flask API service for fetching and serving iCal events for Glance widgets",
     author="AWildLeon",
     url="https://github.com/AWildLeon/Glance-iCal-Events",
-    py_modules=["app"],
+    # Include newly added service module
+    py_modules=["app", "service"],
     install_requires=[
         "flask",
         "pytz>=2023.0", 
         "icalevents>=0.2.0",
         "gunicorn",
+        # Explicit for service.py (even though icalevents pulls it indirectly)
+        "python-dateutil>=2.8.2",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
