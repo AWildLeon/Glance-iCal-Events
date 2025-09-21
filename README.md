@@ -79,7 +79,7 @@ Notes:
 - type: custom-api
   title: iCal Events
   cache: 15m
-  url: http://glances-ical-api:8076/
+  url: http://glances-ical-api:8076/events
   parameters:
     url: https://example.com/cal.ics
     limit: 5
