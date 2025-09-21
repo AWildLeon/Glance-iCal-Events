@@ -1,88 +1,164 @@
-# iCal Event Widgets for Glance
+# iCal Event Widget for Glance
 
-A simple extension that fetches events from an iCal (ICS) feed and displays them as a custom widget in Glance.
+A lightweight API service that fetches iCal/ICS feeds and displays them as a custom widget in [Glance](https://github.com/glanceapp/glance).
+Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any other calendar source right in your dashboard.
 
-## Prerequisites
 
-* [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed.
-* Glance (Glanceapp) compose stack or standalone Glance installation.
-* Access to a valid iCal (ICS) URL.
+## ✨ Features
 
-## Installation
+* Displays **ongoing** and **upcoming** events in separate lists
+* Supports event links (one per widget) (`url`)
+* Configurable limit for collapsible event lists
+* Tested with Nextcloud & SOGo
+* Works with Docker and NixOS
 
-1. In your Glance compose stack, add the contents of `compose.yml` (shown below), or run it standalone.
-2. Start the Stack:
+## ⚠️ Disclaimer
+
+* This project is mainly maintained for my own use.
+* **No guarantee** for stability or support – use at your own risk.
+* The API is **not hardened** → do **not expose directly to the internet**.
+  (Safe to run behind Glance itself.)
+* I may use LLM's to Maintain this code. (Use at your own risk)
+
+## 📦 Installation
+
+### Prerequisites
+
+* [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
+* Glance stack (compose) or standalone installation
+* Access to a valid ICS feed URL
+
+### Setup
+
+1. Add the service definition from `compose.yml` to your Glance compose stack
+   *(or run it standalone).*
+2. Start the stack:
 
    ```bash
    docker compose up -d --remove-orphans
    ```
+
 ### Advanced: NixOS
-See [This](./NIX_USAGE.md)
 
-## Usage
+For NixOS users, there is a dedicated setup using flakes.
+👉 See [NIX\_USAGE.md](./NIX_USAGE.md)
 
-1. Copy the widget configuration into your Glance stack.
-2. Update the `url` parameter to point to your encoded ICS feed URL.
-3. Reload or restart Glance to apply changes.
+---
 
-> Note: I recommend using a version tag like `v1.0` instead of main if you don't want to see stuff accidentally brake...
+## 🚀 Usage
 
-## URL Encoding
+1. Add the widget configuration to your `glance.yml`.
+2. Replace the `url` parameter with your encoded ICS feed URL.
+3. Reload or restart Glance.
 
-If your ICS URL contains special characters (for example, `?` or `&`), you must URL encode it ( '/' and ':' are fine ). Use the provided `urlencode.sh` script or any URL encoding tool:
+**Tip:** For stability, use a **version tag** like `v1.0` instead of tracking `main`.
+I May do breaking changes at any time.
 
-```bash
-./urlencode.sh "https://example.com/calendar.ics?param=value&other=foo"
-```
+---
 
-## Configuration Examples
+## ⚙️ Configuration
 
-Below are Glance widget examples. Replace `https://example.com/cal.ics` with your encoded URL.
+### Parameters
 
-### Big Widget
+| Parameter        | Description                                                                                   | Example / Default                |
+| ---------------- | --------------------------------------------------------------------------------------------- | -------------------------------- |
+| `url`            | Encoded ICS feed URL                                                                          | `https://example.com/cal.ics`    |
+| `limit`          | Number of events returned (applied AFTER ongoing events are prioritized)                      | `5` (omit for all)               |
+| `lookback_days`  | How many days back from now to include events that already started (ensures ongoing coverage) | `14` (default)                   |
+| `horizon_days`   | How many days into the future to fetch (upper bound to limit processing)                      | `3650` (default, ~10 years)      |
 
-```yaml
-- type: custom-api
-  title: "iCal Events (Large)"
-  cache: 1h
-  url: "http://glances-ical-api:8076/events?url=https://example.com/cal.ics"
-  template: |
-    <div>
-    {{ range .JSON.Array "events" }}
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div class="size-h3" style="text-align: left; width: 175px;">{{ .String "name" }}</div>
-        <div class="size-h4" style="text-align: left;">
-          {{ .String "start" | parseLocalTime "rfc3339" }}
-        </div>
-        <div class="color-primary size-h3" style="text-align: right; width: 75px;" {{ .String "start" | parseTime "rfc3339" | toRelativeTime }}></div>
-      </div>
-    {{ end }}
-    </div>
-```
+Notes:
+* Ongoing events (already started, not yet ended) are always placed first before upcoming, regardless of `limit`.
+* `limit` is applied only after sorting (so ongoing events are never excluded by the limit).
+* Accepted ranges (safety clamped server‑side): `lookback_days` 0–90, `horizon_days` 1–3660.
+* Additional per‑event fields you can use in your Glance template: `ongoing`, `secondsUntilStart`, `secondsUntilEnd`, `durationSeconds`, `daysRemaining` (for all‑day), and `source` (`icalevents` or `fallback`).
 
-### Small Widget
+### Example Widget
 
 ```yaml
 - type: custom-api
-  title: "iCal Events (Compact)"
-  cache: 1h
-  url: "http://glances-ical-api:8076/events?url=https://example.com/cal.ics"
+  title: iCal Events
+  cache: 15m
+  url: http://glances-ical-api:8076/
+  parameters:
+    url: https://example.com/cal.ics
+    limit: 5
   template: |
-    <div>
-    {{ range .JSON.Array "events" }}
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div class="size-h3" style="text-align: left; width: 175px;">{{ .String "name" }}</div>
-        <div class="color-primary size-h3" style="text-align: right; width: 75px;" {{ .String "start" | parseTime "rfc3339" | toRelativeTime }}></div>
+    {{ $events := .JSON.Array "events" }}
+    {{ $count  := len $events }}
+    {{ $limit  := 3 }}  <!-- how many upcoming to show before collapse -->
+
+    {{ if eq $count 0 }}
+      <div style="padding:8px 10px; border-radius:10px; background:var(--surface-2);">
+        No entries found.
       </div>
     {{ end }}
-    </div>
+
+    <!-- 1) Ongoing first (never collapsible) -->
+    <ul class="list list-gap-10">
+      {{ range $i, $e := $events }}
+        {{ $ongoing := $e.Bool "ongoing" }}
+        {{ if $ongoing }}
+          {{ $start := $e.String "start" | parseTime "rfc3339" }}
+          {{ $end   := $e.String "end"   | parseTime "rfc3339" }}
+          {{ $name  := $e.String "name" }}
+          {{ $url   := $e.String "url" }}
+          <li>
+            <div class="flex items-center justify-between gap-10">
+              <!-- Left: name (highlight) + absolute date -->
+              <div>
+                {{ if $url }}
+                  <a class="size-h3 color-highlight block text-truncate" href="{{ $url }}" target="_blank" rel="noreferrer" title="{{ $name }}">{{ $name }}</a>
+                {{ else }}
+                  <span class="size-h3 color-highlight block text-truncate" title="{{ $name }}">{{ $name }}</span>
+                {{ end }}
+                <div style="font-size:.85em;">{{ $start | formatTime "Mon, 02 Jan 2006" }}</div>
+              </div>
+              <!-- Right: relative time until END -->
+              <div class="size-h3 color-primary" style="white-space:nowrap;">
+                ends <span {{ $end | toRelativeTime }}></span>
+              </div>
+            </div>
+          </li>
+        {{ end }}
+      {{ end }}
+    </ul>
+
+    <!-- 2) Upcoming, collapsible after $limit -->
+    {{ $shown := 0 }}
+    <ul class="list list-gap-10 collapsible-container" data-collapse-after="{{ $limit }}">
+      {{ range $i, $e := $events }}
+        {{ $ongoing := $e.Bool "ongoing" }}
+        {{ if not $ongoing }}
+          {{ $start := $e.String "start" | parseTime "rfc3339" }}
+          {{ $name  := $e.String "name" }}
+          {{ $url   := $e.String "url" }}
+          <li {{ if ge $shown $limit }}class="collapsible-item"{{ end }}>
+            <div class="flex items-center justify-between gap-10">
+              <!-- Left: name (highlight) + absolute date -->
+              <div>
+                {{ if $url }}
+                  <a class="size-h3 color-highlight block text-truncate" href="{{ $url }}" target="_blank" rel="noreferrer" title="{{ $name }}">{{ $name }}</a>
+                {{ else }}
+                  <span class="size-h3 color-highlight block text-truncate" title="{{ $name }}">{{ $name }}</span>
+                {{ end }}
+                <div style="font-size:.85em;">{{ $start | formatTime "Mon, 02 Jan 2006" }}</div>
+              </div>
+              <!-- Right: relative time until START -->
+              <div class="size-h3 color-primary" style="white-space:nowrap;" {{ $start | toRelativeTime }}></div>
+            </div>
+          </li>
+          {{ $shown = add $shown 1 }}
+        {{ end }}
+      {{ end }}
+    </ul>
 ```
 
-> **Warning** This API is not hardened and may be vulnerable to denial-of-service attacks and other types of exploitation. Do not expose it directly to the public internet. (Using it behind GlanceApp is safe)
+---
 
-## Screenshots
-### Big Widget
-![Big Widget](./demo_big_widget.png)
+## 📸 Screenshots
 
 ### Small Widget
+
 ![Small Widget](./demo_small_widget.png)
+
