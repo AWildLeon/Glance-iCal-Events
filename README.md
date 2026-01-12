@@ -8,6 +8,7 @@ Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any o
 
 * Displays **ongoing** and **upcoming** events in separate lists
 * Supports event links (one per widget) (`url`)
+* Supports basic HTTP Authentication (username, password)
 * Configurable limit for collapsible event lists
 * Tested with Nextcloud & SOGo
 * Works with Docker and NixOS
@@ -66,6 +67,8 @@ I May do breaking changes at any time.
 | `limit`          | Number of events returned (applied AFTER ongoing events are prioritized)                      | `5` (omit for all)               |
 | `lookback_days`  | How many days back from now to include events that already started (ensures ongoing coverage) | `14` (default)                   |
 | `horizon_days`   | How many days into the future to fetch (upper bound to limit processing)                      | `3650` (default, ~10 years)      |
+| `username`       | Username to use for basic HTTP authentication                                                 | `admin` (default, null)          |
+| `password`       | Password to use for basic HTTP authentication                                                 | `12345` (default, null)          |
 
 Notes:
 * Ongoing events (already started, not yet ended) are always placed first before upcoming, regardless of `limit`.

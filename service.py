@@ -1,11 +1,13 @@
 import datetime
 import pytz
 import re
+from urllib3 import PoolManager, make_headers
 from typing import List, Dict, Any, Optional
 from icalevents.icalevents import events as ical_fetch
 from dateutil import parser as date_parser
 from icalevents.icalparser import Event as ICalEvent
 
+http = PoolManager()
 
 class ParsedEvent(Dict[str, Any]):
     pass
@@ -106,10 +108,13 @@ def _fallback_parse(ics_text: str) -> List[ParsedEvent]:
     return results
 
 
-def fetch_raw_events(url: str, start: datetime.datetime, end: datetime.datetime) -> List[ParsedEvent]:
+def fetch_raw_events(url: str, start: datetime.datetime, end: datetime.datetime, username: Optional[str], password: Optional[str]) -> List[ParsedEvent]:
     """Fetch events via icalevents first; on failure, fallback to lightweight parser."""
+    headers = make_headers(basic_auth="{0}:{1}".format(username, password))
+    resp = http.request("GET", url, headers=headers, timeout=15)
+    text = resp.data.decode('utf-8', errors='ignore')
     try:
-        lib_events: List[ICalEvent] = ical_fetch(url, start=start, end=end, strict=False)
+        lib_events: List[ICalEvent] = ical_fetch(string_content=text, start=start, end=end, strict=False)
         parsed: List[ParsedEvent] = []
         for ev in lib_events:
             st = ev.start
@@ -132,9 +137,6 @@ def fetch_raw_events(url: str, start: datetime.datetime, end: datetime.datetime)
         return parsed
     except Exception:
         # fallback
-        from urllib.request import urlopen
-        with urlopen(url, timeout=15) as resp:
-            text = resp.read().decode('utf-8', errors='ignore')
         return _fallback_parse(text)
 
 
@@ -192,13 +194,13 @@ def sort_and_limit(enriched: List[ParsedEvent], limit: Optional[int]) -> List[Pa
     return enriched
 
 
-def get_events(url: str, lookback_days: int, horizon_days: int, limit: Optional[int], include_ended=False) -> List[ParsedEvent]:
+def get_events(url: str, lookback_days: int, horizon_days: int, limit: Optional[int], username: Optional[str], password: Optional[str], include_ended=False) -> List[ParsedEvent]:
     now_utc = datetime.datetime.now(pytz.utc)
     start = now_utc - datetime.timedelta(days=lookback_days)
     end = now_utc + datetime.timedelta(days=horizon_days)
     local_tz = datetime.datetime.now().astimezone().tzinfo
     now_local = now_utc.astimezone(local_tz)
-    raw = fetch_raw_events(url, start, end)
+    raw = fetch_raw_events(url, start, end, username, password)
     enriched = enrich_and_filter(raw, now_local, local_tz, include_ended=include_ended)
     final = sort_and_limit(enriched, limit)
     # Remove internal dt objects

@@ -17,6 +17,8 @@ def calendar_data():
     limit = request.args.get('limit', default=None, type=int)
     lookback_days = request.args.get('lookback_days', default=14, type=int)
     horizon_days = request.args.get('horizon_days', default=3650, type=int)
+    auth_user = request.args.get('username', type=str)
+    auth_pass = request.args.get('password', type=str)
 
     if not ics_url:
         return jsonify({"error": "No URL provided"}), 400
@@ -31,7 +33,9 @@ def calendar_data():
             lookback_days=lookback_days,
             horizon_days=horizon_days,
             limit=limit,
-            include_ended=False
+            include_ended=False,
+            username=auth_user,
+            password=auth_pass
         )
     except Exception as e:
         return jsonify({"error": f"Failed to retrieve events: {str(e)}"}), 400
