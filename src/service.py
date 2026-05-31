@@ -110,7 +110,7 @@ def _fallback_parse(ics_text: str) -> List[ParsedEvent]:
 
 def fetch_raw_events(url: str, start: datetime.datetime, end: datetime.datetime, username: Optional[str], password: Optional[str]) -> List[ParsedEvent]:
     """Fetch events via icalevents first; on failure, fallback to lightweight parser."""
-    headers = make_headers(basic_auth="{0}:{1}".format(username, password))
+    headers = make_headers(basic_auth="{0}:{1}".format(username, password)) if username is not None and password is not None else {}
     resp = http.request("GET", url, headers=headers, timeout=15)
     text = resp.data.decode('utf-8', errors='ignore')
     try:

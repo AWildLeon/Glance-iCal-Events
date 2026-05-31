@@ -68,11 +68,14 @@
             python3Packages.python-dateutil
             python3Packages.pip
             python3Packages.setuptools
+            python3Packages.pytest
+            python3Packages.pytest-cov
           ];
           shellHook = ''
             echo "Glance iCal Events development environment"
             echo "Run: python -c 'import app; app.app.run(debug=True, host=\"0.0.0.0\", port=8076)'"
             echo "Or:  gunicorn -w 4 -b 0.0.0.0:8076 app:app"
+            echo "Tests: pytest"
           '';
         };
 
