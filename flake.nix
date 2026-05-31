@@ -102,7 +102,7 @@
 
             package = mkOption {
               type = types.package;
-              default = self.packages.${pkgs.system}.default;
+              default = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
               description = "The glance-ical-events package to use";
             };
 
@@ -263,7 +263,7 @@
 
       # Overlay to expose the package as pkgs.glance-ical-events
       overlays.default = final: prev: {
-        glance-ical-events = self.packages.${final.system}.default;
+        glance-ical-events = self.packages.${final.stdenv.hostPlatform.system}.default;
       };
     };
 }
