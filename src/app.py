@@ -1,7 +1,9 @@
+import logging
 from flask import Flask, jsonify, request
 from service import get_events, clamp_int
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 
 
@@ -37,8 +39,9 @@ def calendar_data():
             username=auth_user,
             password=auth_pass
         )
-    except Exception as e:
-        return jsonify({"error": f"Failed to retrieve events: {str(e)}"}), 400
+    except Exception:
+        logger.exception("Failed to retrieve events")
+        return jsonify({"error": "Failed to retrieve events"}), 400
 
     return jsonify({"events": events_out})
 
