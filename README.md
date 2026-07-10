@@ -57,14 +57,15 @@ For NixOS users, there is a dedicated setup using flakes.
 **Tip:** For stability, use a **version tag** like `v1.0` instead of tracking `main`.
 I May do breaking changes at any time.
 
-> ⚠️ **Don't pre-encode the URL.** Earlier versions of this README suggested
-> encoding the ICS URL yourself (e.g. with `urlencode.sh`) before adding it to
-> `glance.yml`. Don't do this — Glance's `custom-api` widget already
+> ⚠️ **Don't pre-encode the URL** unless you use `encoded_url` (see below).
+> Earlier versions of this README suggested encoding the ICS URL yourself
+> (e.g. with `urlencode.sh`) before adding it to `glance.yml`. Don't do this
+> with the `url` parameter — Glance's `custom-api` widget already
 > percent-encodes parameter values before sending the request, so encoding it
 > yourself first results in it being encoded *twice* (e.g. Google Calendar's
-> `%40` becomes `%2540`), which breaks the fetch. As of this version the
-> service also defensively detects and repairs a double-encoded `url`
-> parameter, but the recommended fix is to simply paste the URL unmodified.
+> `%40` becomes `%2540`), which breaks the fetch. The service also
+> defensively detects and repairs a doubly-encoded `url`, but if you'd rather
+> be explicit about it, use `encoded_url` instead.
 
 ---
 
@@ -75,6 +76,7 @@ I May do breaking changes at any time.
 | Parameter        | Description                                                                                   | Example / Default                |
 | ---------------- | --------------------------------------------------------------------------------------------- | -------------------------------- |
 | `url`            | Raw (not pre-encoded) ICS feed URL                                                             | `https://example.com/cal.ics`    |
+| `encoded_url`    | Alternative to `url` — provide this instead if your ICS URL is already percent-encoded and you want it decoded explicitly rather than relying on auto-detection. Mutually exclusive with `url`. | `https%3A%2F%2Fexample.com%2Fcal.ics` |
 | `limit`          | Number of events returned (applied AFTER ongoing events are prioritized)                      | `5` (omit for all)               |
 | `lookback_days`  | How many days back from now to include events that already started (ensures ongoing coverage) | `14` (default)                   |
 | `horizon_days`   | How many days into the future to fetch (upper bound to limit processing)                      | `3650` (default, ~10 years)      |
