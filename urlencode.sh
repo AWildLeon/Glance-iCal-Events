@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 # urlencode.sh: percent-encode a string for use in URLs
+#
+# ⚠️ DEPRECATED for use with this project's `url` glance.yml parameter.
+# Glance's custom-api widget already percent-encodes parameter values
+# before calling this service, so pre-encoding the URL with this script
+# and pasting the result into glance.yml causes DOUBLE encoding (e.g.
+# Google Calendar's "%40" becomes "%2540"), which breaks the fetch.
+# See issue #29. Just use the raw ICS URL in glance.yml instead.
 
 set -euo pipefail
 IFS=

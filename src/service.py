@@ -2,6 +2,7 @@ import datetime
 import pytz
 import re
 from urllib3 import PoolManager, make_headers
+from urllib.parse import unquote
 from typing import List, Dict, Any, Optional
 from icalevents.icalevents import events as ical_fetch
 from dateutil import parser as date_parser
@@ -9,8 +10,37 @@ from icalevents.icalparser import Event as ICalEvent
 
 http = PoolManager()
 
+# Matches a percent-encoded '%' character (i.e. "%25") immediately followed
+# by two more hex digits. A raw ICS URL practically never legitimately
+# contains this sequence, so seeing it is a strong signal that the URL has
+# been percent-encoded twice.
+_DOUBLE_ENCODED_RE = re.compile(r"%25[0-9A-Fa-f]{2}")
+
+
 class ParsedEvent(Dict[str, Any]):
     pass
+
+
+def normalize_ics_url(url: Optional[str]) -> Optional[str]:
+    """Undo accidental double percent-encoding of the ``url`` parameter.
+
+    Some ICS providers (e.g. Google Calendar's "secret address") hand out
+    feed URLs that already contain percent-encoded characters, such as
+    ``%40`` for ``@``. Glance's ``custom-api`` widget percent-encodes
+    configured parameter values itself when it builds the outgoing request
+    to this service. If that already-encoded URL is placed in ``glance.yml``
+    as-is, Glance's encoding is layered on top of it, turning ``%40`` into
+    ``%2540`` by the time it reaches us. Flask/Werkzeug only ever removes one
+    layer of encoding from the query string, so the extra layer survives and
+    the resulting URL is no longer valid.
+
+    We detect that tell-tale ``%25XX`` pattern and, if present, decode the
+    URL one additional time so the outgoing request carries a single,
+    correct layer of encoding.
+    """
+    if url and _DOUBLE_ENCODED_RE.search(url):
+        return unquote(url)
+    return url
 
 
 def clamp_int(value: Optional[int], minimum: int, maximum: int, default: int) -> int:
@@ -195,6 +225,7 @@ def sort_and_limit(enriched: List[ParsedEvent], limit: Optional[int]) -> List[Pa
 
 
 def get_events(url: str, lookback_days: int, horizon_days: int, limit: Optional[int], username: Optional[str], password: Optional[str], include_ended=False) -> List[ParsedEvent]:
+    url = normalize_ics_url(url)
     now_utc = datetime.datetime.now(pytz.utc)
     start = now_utc - datetime.timedelta(days=lookback_days)
     end = now_utc + datetime.timedelta(days=horizon_days)

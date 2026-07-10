@@ -49,11 +49,22 @@ For NixOS users, there is a dedicated setup using flakes.
 ## 🚀 Usage
 
 1. Add the widget configuration to your `glance.yml`.
-2. Replace the `url` parameter with your encoded ICS feed URL.
+2. Set the `url` parameter to your **raw** ICS feed URL, exactly as your calendar
+   provider gave it to you (no manual URL-encoding needed — Glance encodes
+   parameter values itself when it calls this API).
 3. Reload or restart Glance.
 
 **Tip:** For stability, use a **version tag** like `v1.0` instead of tracking `main`.
 I May do breaking changes at any time.
+
+> ⚠️ **Don't pre-encode the URL.** Earlier versions of this README suggested
+> encoding the ICS URL yourself (e.g. with `urlencode.sh`) before adding it to
+> `glance.yml`. Don't do this — Glance's `custom-api` widget already
+> percent-encodes parameter values before sending the request, so encoding it
+> yourself first results in it being encoded *twice* (e.g. Google Calendar's
+> `%40` becomes `%2540`), which breaks the fetch. As of this version the
+> service also defensively detects and repairs a double-encoded `url`
+> parameter, but the recommended fix is to simply paste the URL unmodified.
 
 ---
 
@@ -63,7 +74,7 @@ I May do breaking changes at any time.
 
 | Parameter        | Description                                                                                   | Example / Default                |
 | ---------------- | --------------------------------------------------------------------------------------------- | -------------------------------- |
-| `url`            | Encoded ICS feed URL                                                                          | `https://example.com/cal.ics`    |
+| `url`            | Raw (not pre-encoded) ICS feed URL                                                             | `https://example.com/cal.ics`    |
 | `limit`          | Number of events returned (applied AFTER ongoing events are prioritized)                      | `5` (omit for all)               |
 | `lookback_days`  | How many days back from now to include events that already started (ensures ongoing coverage) | `14` (default)                   |
 | `horizon_days`   | How many days into the future to fetch (upper bound to limit processing)                      | `3650` (default, ~10 years)      |
