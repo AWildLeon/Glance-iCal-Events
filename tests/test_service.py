@@ -6,6 +6,7 @@ from unittest.mock import patch, MagicMock
 
 from service import (
     clamp_int,
+    normalize_ics_url,
     _fallback_parse,
     enrich_and_filter,
     sort_and_limit,
@@ -38,6 +39,37 @@ class TestClampInt:
 
     def test_none_returns_default(self):
         assert clamp_int(None, 0, 10, 3) == 3
+
+
+# ---------------------------------------------------------------------------
+# normalize_ics_url
+# ---------------------------------------------------------------------------
+
+class TestNormalizeIcsUrl:
+    def test_plain_url_unchanged(self):
+        url = "https://example.com/cal.ics"
+        assert normalize_ics_url(url) == url
+
+    def test_singly_encoded_google_url_unchanged(self):
+        # A Google Calendar "secret address" already contains a literal
+        # %40 in place of the @ in the calendar ID. This is exactly one
+        # layer of encoding and must be preserved as-is.
+        url = "https://calendar.google.com/calendar/ical/abc%40group.calendar.google.com/private-xyz/basic.ics"
+        assert normalize_ics_url(url) == url
+
+    def test_double_encoded_google_url_is_repaired(self):
+        # Simulates what Flask receives when a user pre-encodes the URL
+        # (e.g. via urlencode.sh) and Glance's custom-api widget encodes
+        # it again on top: %40 -> %2540.
+        double_encoded = "https://calendar.google.com/calendar/ical/abc%2540group.calendar.google.com/private-xyz/basic.ics"
+        expected = "https://calendar.google.com/calendar/ical/abc%40group.calendar.google.com/private-xyz/basic.ics"
+        assert normalize_ics_url(double_encoded) == expected
+
+    def test_none_returns_none(self):
+        assert normalize_ics_url(None) is None
+
+    def test_empty_string_returns_empty_string(self):
+        assert normalize_ics_url("") == ""
 
     def test_non_numeric_returns_default(self):
         assert clamp_int("abc", 0, 10, 3) == 3  # type: ignore[arg-type]

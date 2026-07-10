@@ -70,3 +70,21 @@ class TestEventsRoute:
         with patch("app.get_events", return_value=[]):
             resp = client.get("/events?url=http://example.com/cal.ics")
         assert "events" in resp.get_json()
+
+    def test_encoded_url_is_decoded_before_use(self, client):
+        with patch("app.get_events", return_value=[]) as mock_fn:
+            client.get("/events?encoded_url=http%3A%2F%2Fexample.com%2Fcal.ics%3Fa%3Db")
+        args, _ = mock_fn.call_args
+        assert args[0] == "http://example.com/cal.ics?a=b"
+
+    def test_encoded_url_and_url_together_returns_400(self, client):
+        resp = client.get(
+            "/events?url=http://example.com/cal.ics&encoded_url=http%3A%2F%2Fexample.com%2Fcal.ics"
+        )
+        assert resp.status_code == 400
+        assert "error" in resp.get_json()
+
+    def test_neither_url_nor_encoded_url_returns_400(self, client):
+        resp = client.get("/events?limit=5")
+        assert resp.status_code == 400
+        assert "error" in resp.get_json()
