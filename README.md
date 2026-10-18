@@ -3,6 +3,11 @@
 A lightweight API service that fetches iCal/ICS feeds and displays them as a custom widget in [Glance](https://github.com/glanceapp/glance).
 Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any other calendar source right in your dashboard.
 
+> [!IMPORTANT]
+> **This project is no longer maintained.**
+> I no longer use Glance and have moved to my own self-built dashboard, so I won't be maintaining this project anymore.
+> That said, it should keep working for a long time to come. Feel free to fork it if you need changes.
+
 
 ## ✨ Features
 
@@ -15,7 +20,7 @@ Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any o
 
 ## ⚠️ Disclaimer
 
-* This project is mainly maintained for my own use.
+* This project is **unmaintained** (see notice above).
 * **No guarantee** for stability or support – use at your own risk.
 * The API is **not hardened** → do **not expose directly to the internet**.
   (Safe to run behind Glance itself.)
