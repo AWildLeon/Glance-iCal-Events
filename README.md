@@ -5,7 +5,7 @@ Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any o
 
 > [!IMPORTANT]
 > **This project is no longer maintained.**
-> I no longer use Glance, since I felt there wasn't enough development activity on it, and have moved to my own self-built dashboard. So I won't be maintaining this project anymore.
+> I no longer use Glance, since I felt there wasn't enough development activity on it, and have moved to my own self-built dashboard. That dashboard won't be made public, as it's too tailored to my personal needs. So I won't be maintaining this project anymore.
 > That said, it should keep working for a long time to come. Feel free to fork it if you need changes.
 
 
