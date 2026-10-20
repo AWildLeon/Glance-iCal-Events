@@ -3,6 +3,11 @@
 A lightweight API service that fetches iCal/ICS feeds and displays them as a custom widget in [Glance](https://github.com/glanceapp/glance).
 Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any other calendar source right in your dashboard.
 
+> [!NOTE]
+> **Project status: feature-complete, no longer actively maintained.**
+> This is a small service that turns ICS feeds into JSON for Glance's `custom-api` widget, and it does what it's meant to do. I no longer use Glance myself and have moved to a self-built dashboard, so I won't be adding features anymore.
+>
+> It should keep working for a long time to come. Feel free to fork it if you need changes. I may still do dependency updates or answer an issue when I feel like it, but there are no guarantees.
 
 ## ✨ Features
 
@@ -15,11 +20,11 @@ Perfect for showing birthdays or recurring events from Nextcloud, SOGo, or any o
 
 ## ⚠️ Disclaimer
 
-* This project is mainly maintained for my own use.
+* This project is no longer actively maintained (see status above).
 * **No guarantee** for stability or support – use at your own risk.
 * The API is **not hardened** → do **not expose directly to the internet**.
   (Safe to run behind Glance itself.)
-* I may use LLM's to Maintain this code. (Use at your own risk)
+* I may have used LLMs to maintain this code. (Use at your own risk)
 
 ## 📦 Installation
 
@@ -54,8 +59,7 @@ For NixOS users, there is a dedicated setup using flakes.
    parameter values itself when it calls this API).
 3. Reload or restart Glance.
 
-**Tip:** For stability, use a **version tag** like `v1.0` instead of tracking `main`.
-I May do breaking changes at any time.
+**Tip:** For stability, pin a **version tag** like `v1.0` instead of tracking `main`.
 
 > ⚠️ **Don't pre-encode the URL** unless you use `encoded_url` (see below).
 > Earlier versions of this README suggested encoding the ICS URL yourself
@@ -177,4 +181,3 @@ Notes:
 ### Small Widget
 
 ![Small Widget](./demo_small_widget.png)
-
